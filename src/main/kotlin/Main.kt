@@ -1,44 +1,33 @@
 package it.alex
 
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.util.*
+
 
 const val ciao = "ciao"
 
-const val pvt = "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCe5kyAvT+ba27n9B2UGOVL9Q/0" +
-        "    BiR6MjVRsyQR6T7vUR8k2irEHxeEJJ2kVUD0FEds7pLHvEDOrNr9DJ3RSobsTw4tqvXcdd31y1Qy" +
-        "    YzLSMKGmiA13S9bpVT25byXabyKUD2AE3gHQCNY02qXtJINaXqoCXhC2sxAX33wUd3M8qITKZ7c0" +
-        "    qjjzAju2nHNlVlEKqWjJPhlxEMtVFhEsZFuikjMvVlU8Tk4Bga0rZfEO35M/Me73qSiATl/GDPAU" +
-        "    fyEdfE7G4/mrhzqlBlwqqZBAwFA4E0h8t9iUENYNubf3F2PMeNPXuS/YlbTrN34heA8+4D1soues" +
-        "    mzG4caGgdT+bAgMBAAECggEAH0yDszQTzFxcCypljR9eQxjxXIK9OqibIg2kRDbqY59aABtNIzZw" +
-        "    nmHL/2ufkLRR4V4Y4WjuZwdbV07d4zTH4NItm8c6CIPbBahYXFh30TktDi1sYZw5p9pXfygqj50m" +
-        "    dX2Vzz+focer0dtjpZN0oB9XY4H9zs70k4881Jc2xrKniBY/T+U1BNiESn/O9SxGl+IyoVNlzqrB" +
-        "    fq98nYKi5s+HCmPJmjFEDUV6UHOWiFZW+sj+5I0UniMUq/EHSnNyaB6a1RnVz+8p8Ld+kBLTzV9R" +
-        "    ZXQTffeWhLi8pMF2+THzGoRWZq9+s8WJGA1q7KaGyPNquAh4uBh3j4a8UaT3UQKBgQDLZA5D+k62" +
-        "    3jd0+7l/4ImFTSpgXxyCLftnwkj8mwTZWV8u4ujjhzvLc1q8S1n6oOpG1kHr56HgGioZHZtQuOmU" +
-        "    2lNXJsOt9bh0c2psPeGSdQViYfsSEBFTE1ud8X2ugTmn8U7Zugpo3kcSeRBiOfLy2S06+8UsuW3j" +
-        "    Ptd4gqEOSQKBgQDIACn8fwW4at5OpvlfBg38Q4n4Lq1Mawg3xw51JT+xDwatZnMJZV+l8XS0/JDZ" +
-        "    7wWNwEElwZjM3dkt6IYuyWoFepFmIV9H93gTM05VHKVUPFlJASiN9UkMOrLubYo8iEVdh6+e31sF" +
-        "    0Ttw0RgT1O3j1FVGPA1Uc49bwxIVHoRuwwKBgDcS5tH9a2cVEQs6RmacFGDmHj1uQ7f0X4kfEMhl" +
-        "    6ZA5JQ77HnjN26EhoUYvWTQGcqmvxrXsSOb37sJSRAY9q/JElCCbPI1UZhgSUJTyxKv1x/l18phX" +
-        "    hXlrWnmQNKoWD9ir/N/0AnGXDsOvyIHwkxqzOA4qsp+Drn/EOnBFXvsRAoGBAIDZijM/6oGLaDmn" +
-        "    3VTY4724DXU1LTTkZ+D3f1r9anE5ywV/0XEmPF7+lj/bz753/U37pH0cosKp0rd+7KPL42AwPOhd" +
-        "    a7NDvbow/bBbyi/gyWz9MBF1C2CzmH9/VuX0rSu6tOxX3Z571B20uBxeu/xh2aZsHfJgmOV3YXj1" +
-        "    tkBdAoGBAKGhzY1/KOTkurisaW7phiZlmJLPnz06a0YzT+ecs1RI0AKU3hizANagWfPUfNQZacaa" +
-        "    24yo2ffQgz43oSr9oS7BRQoQVYRVPmAYTxrL7Rd66FtsuVTnRqbVM0vLUPKhKqwlHFqKah9H4+ey" +
-        "    V4LqJK86id2W4lGhciUVMwuHmml0"
+const val pvt = "MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDRRrqM1DSs69HBLVKWVPKfs0UHOdFqk9HV80cWBUkpb4oFu/H88NVR/MoApoZUXaVea9WgnLI+dvOrEaf7KqqGeUXoh/GVgoaKlbqY2O6AVQDxc7oI5voaf5Ycf0KTzEA3rDmCFIHyuKjb+ZRE66caUwRKY5NzSkHA4oZysU6gwv/fN3gKb7zrlc90NILMtBLIAAycoodjapFuC8y1MuLXjWPLlWgAAwznTk9C1FYs+QHcMb4R+64cPL4yfVgx4YOnINOdKQaN3d8NstSWI6NyOLF+PNZoiwbrNfAWGADSpb+LIUn5Oalbwg5aQJ6YF83M7s2kevUGRZ7bsanvKuRpAgMBAAECggEBAMaFesfHMeTrm0HOVa7IDJSUQaIWJeMdMIvtyHxKLVoCNgM0g9y3NRUeYR122qzDXPESCEfg/XEl9AZOrHQlyDfiaP+pnfF/LVPfr2/5MV5JxKhHaK2zNoPWjjagPi7oLe7iEHemLpNqurxZqF4s0Yq2P7a1eRV/1po8COBZ9EWonkRjLHjTjFqPx2oFCYd90VsgrUSJccKGM76v2b9EqTx2gRVmPdW4GqXM3bW0wd9DoF9tEVBgLH7K4yfpuqvGvfPXOT5F4uzdlsNj1eBMQkd7NT9SjWQyP7fc5QiEy460v4HYJk0oYDQ1/civzIGx/e87sEyQvrY5jR9T0nOSkYECgYEA7JKnNsBukVUmwzX30puOF1u2NtoiTSJ+sV8pw3YDKwn54DLobz/PrMVTVE62G6pECdCq9qNobrxsWLHyKVWCqYvYAQUjyeOTy9khBeVLdZ/nTfm9w5MQ402gjoBrqyv/08cdToykMsdUT3AUmwSFoyLg60MgIhmvbk7X+wnzHtkCgYEA4nY74Ks4yN3qDQwCoyLoVcWlDAPfTWn0m6U0h86h9uht9ReAuINdTCMWAeoY971/uRmZbf3HNv6i5ifWnWF14k2AGpZo7JZS+JRmnVacQRgOG+cPoWGO5KqKLEYY5Wn3g7KwcYzqASIleFMRCqHg19AkMk5PSvy6NwUPzOI9mBECgYBZLdts71N+46uOEQ0PzmXc9kyVFtuxWhyKPoZe0WDWW5dfZbFrJpHh3izQbi+F9ERbstaPzP+0JsFtGf9gh4SO51GQ6OAZ3fk78ejZ8RrmB1ZJdaiMTicimIO61DxCNX7l1Xx9vNS086EbpPOPkD/URHSnGxHE6QvRuFUApDqK2QKBgGlJ21D7im0pb9YdDWTXp/mo6LGLY1jUuFtdFe1GTttC+UyIXtpqiQgLEAJX2r/kJOvkUQdohCS3gvlK8Gc/ltVefv7di27j/TOBm6vvRrqk+npSlVvMxejeuVsYRB71g5SBkbNZdrqMK6ujwzqURLtSFGInMoqEsfc+rTfuwABhAoGBAOCNUej7V6X289phJ2DfJP+wwJr92IWGOG+e9s22GRN6aljW7N+6Vx3LPDB5AqFOsXhadDArBg+6CdhcXEZinzIz561CF4FTAAi/OEal54H99J4q+VBdwlOJzc9UqB+0WVDGjVyAAIbpdbj0QiHJpfCid3271NHg6sYXzc9pX5W4"
 
-const val pub = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnuZMgL0/m2tu5/QdlBjlS/UP9AYkejI1" +
-        "    UbMkEek+71EfJNoqxB8XhCSdpFVA9BRHbO6Sx7xAzqza/Qyd0UqG7E8OLar13HXd9ctUMmMy0jCh" +
-        "    pogNd0vW6VU9uW8l2m8ilA9gBN4B0AjWNNql7SSDWl6qAl4QtrMQF998FHdzPKiEyme3NKo48wI7" +
-        "    tpxzZVZRCqloyT4ZcRDLVRYRLGRbopIzL1ZVPE5OAYGtK2XxDt+TPzHu96kogE5fxgzwFH8hHXxO" +
-        "    xuP5q4c6pQZcKqmQQMBQOBNIfLfYlBDWDbm39xdjzHjT17kv2JW06zd+IXgPPuA9bKLnrJsxuHGh" +
-        "    oHU/mwIDAQAB"
+const val pub = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Ua6jNQ0rOvRwS1SllTyn7NFBznRapPR1fNHFgVJKW+KBbvx/PDVUfzKAKaGVF2lXmvVoJyyPnbzqxGn+yqqhnlF6IfxlYKGipW6mNjugFUA8XO6COb6Gn+WHH9Ck8xAN6w5ghSB8rio2/mUROunGlMESmOTc0pBwOKGcrFOoML/3zd4Cm+865XPdDSCzLQSyAAMnKKHY2qRbgvMtTLi141jy5VoAAMM505PQtRWLPkB3DG+EfuuHDy+Mn1YMeGDpyDTnSkGjd3fDbLUliOjcjixfjzWaIsG6zXwFhgA0qW/iyFJ+TmpW8IOWkCemBfNzO7NpHr1BkWe27Gp7yrkaQIDAQAB"
 
 fun main() {
 
-    println(
-        RSAUtils.encryptInBase64WithPublicBase64Key(pub, ciao)
-    )
+//    val encC = RSAUtils.encryptInBase64WithPublicBase64Key(pub, ciao).print()
+//
+//    RsaUtil.decrypt(encC, RsaUtil.loadPrivateKey(pvt)).print() isEqual ciao
 
+    SHA256(ciao).print()
 }
 
 
+@Throws(NoSuchAlgorithmException::class)
+fun SHA256(text: String): String {
+
+    val md = MessageDigest.getInstance("SHA-256")
+
+    md.update(text.toByteArray())
+    val digest = md.digest()
+
+    return Base64.getEncoder().encodeToString(digest)
+}

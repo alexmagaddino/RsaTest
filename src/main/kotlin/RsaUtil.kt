@@ -15,7 +15,6 @@ import javax.crypto.Cipher
 object RsaUtil : RsaInterface {
 
     private const val KEY_ALGORITHM = "RSA"
-    private const val ENCRYPT_DECRYPT_ALGORITHM = "RSA/ECB/PKCS1Padding"
     private const val SIGNATURE_ALGORITHM = "SHA256withRSA"
 
     @Throws(Exception::class)
@@ -45,32 +44,39 @@ object RsaUtil : RsaInterface {
     }
 
     @Throws(Exception::class)
-    override fun encrypt(plainText: String, publicKey: PublicKey): String {
-        val encryptCipher = Cipher.getInstance(ENCRYPT_DECRYPT_ALGORITHM)
-        encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey)
+    override fun encrypt(plainText: String, publicKey: PublicKey): String =
+        Cipher.getInstance("RSA/ECB/PKCS1Padding").let { encryptCipher ->
+            encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey)
+            Base64.getEncoder().encodeToString(
+                encryptCipher
+                    .doFinal(plainText.toByteArray(UTF_8))
+            )
+        }
 
-        val cipherText = encryptCipher.doFinal(plainText.toByteArray(UTF_8))
-
-        return Base64.getEncoder().encodeToString(cipherText)
-    }
 
     @Throws(Exception::class)
     override fun decrypt(cipherText: String, privateKey: PrivateKey): String =
-        Cipher.getInstance(ENCRYPT_DECRYPT_ALGORITHM).let { decryptCipher ->
+        Cipher.getInstance("RSA/ECB/PKCS1Padding").let { decryptCipher ->
             decryptCipher.init(Cipher.DECRYPT_MODE, privateKey)
             String(decryptCipher.doFinal(Base64.getDecoder().decode(cipherText)), UTF_8)
         }
 
     @Throws(GeneralSecurityException::class, IOException::class)
-    override fun loadPrivateKey(key64: String): PrivateKey = PKCS8EncodedKeySpec(Base64.getDecoder()
-        .decode(key64))
+    override fun loadPrivateKey(key64: String): PrivateKey = PKCS8EncodedKeySpec(
+        Base64
+            .getDecoder()
+            .decode(key64)
+    )
         .let { keySpec ->
             KeyFactory.getInstance(KEY_ALGORITHM).generatePrivate(keySpec)
         }
 
     @Throws(GeneralSecurityException::class, IOException::class)
-    override fun loadPublicKey(key64: String): PublicKey = X509EncodedKeySpec(Base64.getDecoder()
-        .decode(key64))
+    override fun loadPublicKey(key64: String): PublicKey = X509EncodedKeySpec(
+        Base64
+            .getDecoder()
+            .decode(key64)
+    )
         .let { keySpec ->
             KeyFactory.getInstance(KEY_ALGORITHM).generatePublic(keySpec)
         }
@@ -79,13 +85,15 @@ object RsaUtil : RsaInterface {
     override fun generateKeyPair(): KeyPair = KeyPairGenerator
         .getInstance(KEY_ALGORITHM)
         .apply {
-            initialize(2048, SecureRandom())
+            initialize(2048)
         }
         .generateKeyPair()
 
     override fun generateKeys(): Pair<String, String> = generateKeyPair()
         .let { keys ->
-            Pair(Base64.getEncoder().encodeToString(keys.private.encoded),
-                Base64.getEncoder().encodeToString(keys.public.encoded))
+            Pair(
+                Base64.getEncoder().encodeToString(keys.private.encoded),
+                Base64.getEncoder().encodeToString(keys.public.encoded)
+            )
         }
 }
